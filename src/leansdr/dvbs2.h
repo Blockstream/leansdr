@@ -2208,6 +2208,7 @@ namespace leansdr {
 		     pipebuf< fecframe<SOFTBYTE> > &_in,
 		     pipebuf<bbframe> &_out,
 		     const char *_command,
+		     int _max_iter,
 		     pipebuf<int> *_bitcount=NULL,
 		     pipebuf<int> *_errcount=NULL)
       : runnable(sch, "S2 fecdec io"),
@@ -2216,6 +2217,7 @@ namespace leansdr {
 	must_buffer(false),
 	in(_in), out(_out),
 	command(_command),
+	max_iter(_max_iter),
 	bitcount(opt_writer(_bitcount,1)),
 	errcount(opt_writer(_errcount,1))
     {
@@ -2320,8 +2322,10 @@ namespace leansdr {
 	close(rx[0]); dup2(rx[1], 1);
 	char mc_arg[16];
 	sprintf(mc_arg, "%d", pls->modcod);
+	char iter_arg[8];
+	sprintf(iter_arg, "%d", max_iter);
 	const char *sf_arg = pls->sf ? "--shortframes" : NULL;
-	const char *argv[] = { command, "--modcod", mc_arg, sf_arg, NULL };
+	const char *argv[] = { command, "--modcod", mc_arg, "--trials", iter_arg, sf_arg, NULL };
 	execve(command, (char *const*)argv, NULL);
 	fatal(command);
       }
@@ -2381,6 +2385,7 @@ namespace leansdr {
     pipereader< fecframe<SOFTBYTE> > in;
     pipewriter<bbframe> out;
     const char *command;
+    int max_iter;
     SOFTBYTE ldpc_buf[64800/8];
     uint8_t bch_buf[64800/8];  // Temp storage for hardening before BCH
     s2_bch_engines s2bch;

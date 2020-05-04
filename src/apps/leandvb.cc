@@ -81,6 +81,7 @@ struct config {
   bool hard_metric;
   int ldpc_bf;
   const char *ldpc_helper;
+  int ldpc_max_iterations;
   int nhelpers;
   bool resample;
   float resample_rej;  // Approx. filter rejection in dB
@@ -138,6 +139,7 @@ struct config {
       hard_metric(false),
       ldpc_bf(0),
       ldpc_helper(NULL),
+      ldpc_max_iterations(25),
       nhelpers(1),
       resample(false),
       resample_rej(10),
@@ -737,7 +739,7 @@ int run_dvbs2(config &cfg) {
     // Decode FEC-protected frames into plain BB frames.
     s2_fecdec_helper<llr_t,llr_sb> *r_fecdec =
       new s2_fecdec_helper<llr_t,llr_sb>(run.sch, *p_fecframes, p_bbframes,
-					 cfg.ldpc_helper,
+					 cfg.ldpc_helper, cfg.ldpc_max_iterations,
 					 run.p_vbitcount, run.p_verrcount);
     r_fecdec->nhelpers = cfg.nhelpers;
     r_fecdec->must_buffer = (cfg.nhelpers>1) || (cfg.input_pipe>0);
@@ -1406,7 +1408,8 @@ void usage(const char *name, FILE *f, int c, const char *info=NULL) {
      "  --fastdrift       Assume carrier drifts faster than pilots\n"
      "  --ldpc-bf INT     Max number of LDPC bitflips (default: 0)\n"
      "  --ldpc-helper CMD Spawn external LDPC decoder:\n"
-     "                    'CMD --standard DVB-S2 --modcod N [--shortframes]'\n"
+     "                    'CMD --standard DVB-S2 --modcod N --trials X [--shortframes]'\n"
+     "  --ldpc-iterations Max number of LDPC decoding iterations (external helper only)\n"
      "  --nhelpers INT    Number of decoders per modcod/framesize\n"
      );
   fprintf
@@ -1521,6 +1524,8 @@ int main(int argc, const char *argv[]) {
       cfg.ldpc_bf = atoi(argv[++i]);
     else if ( ! strcmp(argv[i], "--ldpc-helper") && i+1<argc )
       cfg.ldpc_helper = argv[++i];
+    else if ( ! strcmp(argv[i], "--ldpc-iterations") && i+1<argc )
+      cfg.ldpc_max_iterations = atoi(argv[++i]);
     else if ( ! strcmp(argv[i], "--nhelpers") && i+1<argc )
       cfg.nhelpers = atoi(argv[++i]);
     else if ( ! strcmp(argv[i], "--hard-metric") )
