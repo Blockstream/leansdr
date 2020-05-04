@@ -1,0 +1,3 @@
+[submodule "LDPC"]
+	path = LDPC
+	url = https://github.com/Blockstream/LDPC.git
