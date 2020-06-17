@@ -301,7 +301,7 @@ namespace leansdr {
       unsigned long count = samples_per_pixel;
       for ( channel *c=chans; c<chans+nchans; ++c )
 	if ( ! (c->spec.flags&chanspec::ASYNC) )
-	  count = min(count, c->in->readable());
+	  count = min(count, static_cast<unsigned long>(c->in->readable()));
       for ( int n=count; n--; ) {
 	for ( channel *c=chans; c<chans+nchans; ++c )
 	  if ( ! (c->spec.flags&chanspec::ASYNC) )
